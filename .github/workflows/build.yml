@@ -1,0 +1,40 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [development]
+  pull_request:
+    branches: [development]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # GitHub-hosted Xcode 27 image, the same label the upstream project uses.
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Install SwiftLint
+        run: |
+          sh scripts/install-swiftlint.sh "$HOME/.local/bin"
+          sudo mkdir -p /opt/homebrew/bin
+          sudo ln -sf "$HOME/.local/bin/swiftlint" /opt/homebrew/bin/swiftlint
+
+      - name: Build the app
+        run: |
+          xcodebuild -project Thaw.xcodeproj -scheme Thaw -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Test pure packages
+        run: |
+          for package in MenuBarModel ThawAX ThawLayout ThawCapture ThawExtras ThawConcurrency ThawUI; do
+            swift test --package-path "$package"
+          done
