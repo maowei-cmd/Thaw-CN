@@ -1,0 +1,42 @@
+Thaw-CN
+=======
+
+Copyright (C) 2026 Thaw-CN contributors
+
+This project is an unofficial Simplified Chinese fork of Thaw.
+
+Upstream project: Thaw
+Upstream repository: https://github.com/thaw-app/Thaw
+Upstream copyright: Copyright (C) 2026 Toni Förster et al.
+Upstream license: GNU General Public License v3.0 (see LICENSE and LICENSE-EXCEPTION)
+Base commit: aea430e11d2875f9a484ef206d5f4987f8aa41ac (development, 2026-10-29)
+Upstream website: https://www.getthaw.app
+
+Modifications in this fork
+--------------------------
+
+- Complete Simplified Chinese localization of the app string catalog
+  (Thaw/Resources/Localizable.xcstrings), plus the review toolchain under
+  scripts/localization and l10n/zh-Hans.
+- Simplified Chinese README and fork documentation.
+- Sparkle automatic updates disabled; repository and changelog links point at
+  this fork.
+- Dual-display menu bar improvements for macOS 27.
+
+This is not an official Thaw release. It is not affiliated with, endorsed by,
+or supported by the upstream authors. The name "Thaw" is used descriptively to
+identify the upstream project; no trademark rights are claimed.
+
+The upstream copyright notices and the GPL-3.0 license are retained. The
+modified source is available from:
+
+  https://github.com/maowei-cmd/Thaw-CN
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, version 3 or later, with the upstream LICENSE-EXCEPTION applying
+where stated.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
