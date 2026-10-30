@@ -48,29 +48,13 @@ jobs:
           echo "Packaging $APP version $VERSION ($BUILD)"
 
           # Ad-hoc signing keeps the app runnable without a Developer ID. It is
-          # not notarized, so the release notes explain Gatekeeper.
+          # not notarized, so the install notes explain Gatekeeper.
           codesign --force --deep --sign - "$APP"
 
           STAGE=$(mktemp -d)
           cp -R "$APP" "$STAGE/"
           ln -s /Applications "$STAGE/Applications"
-          cat > "$STAGE/安装说明.txt" <<'TXT'
-Thaw-CN（非官方简体中文版）安装说明
-
-1. 退出正在运行的官方 Thaw。
-2. 把 Thaw.app 拖到“应用程序”文件夹。
-3. 首次启动如果提示“无法验证开发者”，打开“系统设置 → 隐私与安全性”，
-   在“安全性”中点击“仍要打开”。
-4. 按提示授予辅助功能、菜单栏布局访问权限；屏幕录制为可选项。
-
-注意：
-- 本构建使用与官方 Thaw 相同的 Bundle ID，不能与官方版同时安装。
-  建议安装前备份偏好：
-  defaults export com.stonerl.Thaw ~/Desktop/thaw-backup.plist
-- 本构建为 ad-hoc 签名，未经过 Apple 公证。
-- 自动更新已关闭，升级请重新下载新版本。
-- 本版本基于 thaw-app/Thaw（GPL-3.0），不是官方版本。
-TXT
+          cp docs/INSTALL-CN.txt "$STAGE/安装说明.txt"
 
           DMG="Thaw-CN-${VERSION}-${BUILD}.dmg"
           ZIP="Thaw-CN-${VERSION}-${BUILD}.zip"
@@ -86,55 +70,9 @@ TXT
 
       - name: Write release notes
         run: |
-          cat > release-notes.md <<EOF
-          # Thaw-CN ${{ steps.package.outputs.version }}（非官方简体中文版）
-
-          基于 [thaw-app/Thaw](https://github.com/thaw-app/Thaw) 的 \`development\` 分支构建，
-          现有应用版本 **${{ steps.package.outputs.version }}（build ${{ steps.package.outputs.build }}）**。
-          本项目不是官方版本，上游不提供支持。
-
-          ## 安装
-
-          1. 退出官方 Thaw。
-          2. 打开 DMG，把 **Thaw.app** 拖到“应用程序”。
-          3. 首次启动如提示“无法验证开发者”，到“系统设置 → 隐私与安全性”点击“仍要打开”。
-          4. 授予辅助功能、菜单栏布局访问权限；屏幕录制可选。
-
-          安装前建议备份官方偏好：
-
-          \`\`\`sh
-          defaults export com.stonerl.Thaw ~/Desktop/thaw-backup.plist
-          \`\`\`
-
-          ## 本次内容
-
-          - 完整简体中文界面：1875 条字符串中 1851 条为中文。
-          - 中文 README、引导界面和双屏说明。
-          - 按显示器检测 macOS 未绘制的可见项目，并在该显示器的 Thaw 工具栏中提供入口。
-          - 修复从副屏打开 Thaw 工具栏时仍开到活动显示器的问题。
-          - 关闭 Sparkle 自动更新，避免官方英文版覆盖。
-
-          ## 已知限制
-
-          - 本构建为 **ad-hoc 签名、未公证**；Gatekeeper 可能要求手动放行。
-          - Bundle ID 与官方 Thaw 相同，不能共存。
-          - macOS 27.0.1 不会把微信、输入法菜单、万年历绘制到副屏菜单栏；
-            本版会在该屏的 Thaw 工具栏中提供访问入口（详见 README 的双屏说明）。
-          - Control Center 控件在无 App Group 授权的 ad-hoc 构建中可能不可用。
-
-          ## 校验
-
-          下载后可用 \`SHA256SUMS.txt\` 校验文件：
-
-          \`\`\`sh
-          shasum -a 256 -c SHA256SUMS.txt
-          \`\`\`
-
-          ## 许可证与署名
-
-          GPL-3.0；上游版权归 Toni Förster 等人所有。详见仓库的 LICENSE、LICENSE-EXCEPTION 和 NOTICE。
-          “Thaw” 为上游项目名称，本项目仅作描述性使用，不主张商标权。
-          EOF
+          sed -e "s/@VERSION@/${{ steps.package.outputs.version }}/g" \
+              -e "s/@BUILD@/${{ steps.package.outputs.build }}/g" \
+              docs/RELEASE_NOTES-CN.md > release-notes.md
 
       - name: Create the GitHub release
         env:
