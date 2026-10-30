@@ -33,6 +33,20 @@ jobs:
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
             build
 
+      - name: Package the debug app
+        run: |
+          APP=$(xcodebuild -project Thaw.xcodeproj -scheme Thaw -configuration Debug -showBuildSettings -json \
+            | python3 -c 'import json,sys,os; s=json.load(sys.stdin)[0]["buildSettings"]; print(os.path.join(s["TARGET_BUILD_DIR"], s["WRAPPER_NAME"]))')
+          echo "APP=$APP"
+          codesign --force --deep --sign - "$APP" || true
+          ditto -c -k --keepParent "$APP" Thaw-debug.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Thaw-debug
+          path: Thaw-debug.zip
+          retention-days: 14
+
       - name: Test pure packages
         run: |
           for package in MenuBarModel ThawAX ThawLayout ThawCapture ThawExtras ThawConcurrency ThawUI; do
