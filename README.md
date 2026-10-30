@@ -2,9 +2,15 @@
 
 **Thaw 的非官方简体中文版** —— macOS 菜单栏管理器。
 
+[![Build](https://github.com/maowei-cmd/Thaw-CN/actions/workflows/build.yml/badge.svg?branch=development)](https://github.com/maowei-cmd/Thaw-CN/actions/workflows/build.yml)
+
 > 本项目基于开源项目 [thaw-app/Thaw](https://github.com/thaw-app/Thaw)（GPL-3.0）修改而来，**不是官方版本**，与上游团队没有隶属或背书关系。上游不为本版本提供支持；遇到上游相关问题请到上游仓库反馈，本仓库只处理汉化和本 fork 的改动。
 
 Thaw 会隐藏你不需要的菜单栏项目，在需要时把它们带回来，并支持搜索、分组、配置、布局编辑和禅模式。免费、无订阅、无账号、无跟踪。
+
+## 界面
+
+![Thaw-CN 中文引导界面（开发版截图）](docs/images/thaw-cn-onboarding.png)
 
 ## 功能
 
