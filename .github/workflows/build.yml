@@ -30,12 +30,15 @@ jobs:
         run: |
           xcodebuild -project Thaw.xcodeproj -scheme Thaw -configuration Debug \
             -destination 'platform=macOS' \
+            THAW_BUNDLE_ID_SUFFIX=.debug THAW_PRODUCT_NAME_SUFFIX=" Debug" \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
             build
 
       - name: Package the debug app
         run: |
-          APP=$(xcodebuild -project Thaw.xcodeproj -scheme Thaw -configuration Debug -showBuildSettings -json \
+          APP=$(xcodebuild -project Thaw.xcodeproj -scheme Thaw -configuration Debug \
+            THAW_BUNDLE_ID_SUFFIX=.debug THAW_PRODUCT_NAME_SUFFIX=" Debug" \
+            -showBuildSettings -json \
             | python3 -c 'import json,sys,os; s=json.load(sys.stdin)[0]["buildSettings"]; print(os.path.join(s["TARGET_BUILD_DIR"], s["WRAPPER_NAME"]))')
           echo "APP=$APP"
           codesign --force --deep --sign - "$APP" || true

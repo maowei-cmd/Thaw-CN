@@ -20,10 +20,23 @@ struct ChineseCatalogTests {
         return try #require(plist as? [String: String])
     }
 
+    /// Plural entries are compiled to Localizable.stringsdict, next to the
+    /// flat strings table. Their keys still belong to the catalog count.
+    private static func zhPluralKeys() throws -> [String] {
+        let path = try #require(Bundle.main.path(forResource: "zh-Hans", ofType: "lproj"))
+        let url = URL(fileURLWithPath: path).appendingPathComponent("Localizable.stringsdict")
+        guard FileManager.default.fileExists(atPath: url.path) else { return [] }
+        let data = try Data(contentsOf: url)
+        let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
+        guard let dictionary = plist as? [String: Any] else { return [] }
+        return Array(dictionary.keys)
+    }
+
     @Test("The compiled catalog carries the full Chinese table")
     func catalogIsComplete() throws {
         let strings = try Self.zhStrings()
-        #expect(strings.count >= 1870, "compiled zh-Hans has \(strings.count) entries")
+        let total = try strings.count + (Self.zhPluralKeys()).count
+        #expect(total >= 1870, "compiled zh-Hans has \(total) entries")
         #expect(strings["Visible"] == "显示")
         #expect(strings["Hidden"] == "隐藏")
         #expect(strings["Always Hidden"] == "永久隐藏")
