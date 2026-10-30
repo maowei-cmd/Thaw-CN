@@ -3,6 +3,7 @@
 **Thaw 的非官方简体中文版** —— macOS 菜单栏管理器。
 
 [![Build](https://github.com/maowei-cmd/Thaw-CN/actions/workflows/build.yml/badge.svg?branch=development)](https://github.com/maowei-cmd/Thaw-CN/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/maowei-cmd/Thaw-CN?include_prereleases&label=release)](https://github.com/maowei-cmd/Thaw-CN/releases)
 
 > 本项目基于开源项目 [thaw-app/Thaw](https://github.com/thaw-app/Thaw)（GPL-3.0）修改而来，**不是官方版本**，与上游团队没有隶属或背书关系。上游不为本版本提供支持；遇到上游相关问题请到上游仓库反馈，本仓库只处理汉化和本 fork 的改动。
 
@@ -30,9 +31,9 @@ Thaw 会隐藏你不需要的菜单栏项目，在需要时把它们带回来，
 
 ## 安装
 
-本项目不提供经过公证的安装包。你可以：
+本项目提供 **ad-hoc 签名、未公证** 的 DMG/ZIP，放在 [Releases](https://github.com/maowei-cmd/Thaw-CN/releases)。你可以：
 
-1. 从 [Releases](https://github.com/maowei-cmd/Thaw-CN/releases) 下载未签名的 zip（如果发布了），解压后把 `Thaw.app` 拖到“应用程序”；
+1. 下载 DMG，打开后把 `Thaw.app` 拖到“应用程序”；或下载 ZIP 解压；
 2. 或按下面的“从源码构建”自行构建。
 
 首次打开时 macOS 可能提示“无法验证开发者”，请在“系统设置”→“隐私与安全性”中点击“仍要打开”。
