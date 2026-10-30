@@ -1,0 +1,28 @@
+{
+  "_comment": "Keys that intentionally stay identical to the English source. Everything else must contain Chinese characters.",
+  "skip": {
+    "%@": "placeholder only",
+    "%@ %@": "placeholders only",
+    "%@ (%@)": "placeholders and punctuation only",
+    "%@ (2.1.0)": "version placeholder only",
+    "%@ · %@": "placeholders and separator only",
+    "%@: %@": "placeholders and punctuation only",
+    "•": "bullet symbol",
+    "%lld": "numeric placeholder only",
+    "+%lld": "numeric placeholder only",
+    "%lld fps": "fps is a unit",
+    "%lld pt": "pt is a unit",
+    "1 pt": "pt is a unit",
+    "2 pt": "pt is a unit",
+    "3 pt": "pt is a unit",
+    "ALPHA": "release channel badge",
+    "Ice Cube": "appearance preset name",
+    "pid %d": "technical identifier",
+    "%lld × %lld px at %@×": "dimension readout with units and placeholders only",
+    "App": "standard product term kept as App",
+    "CPU": "technical acronym",
+    "Discord": "brand name",
+    "Little Snitch": "brand name",
+    "The Lab": "feature name"
+  }
+}
