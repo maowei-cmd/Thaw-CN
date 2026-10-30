@@ -36,7 +36,9 @@ struct SimpleModeSettingsPane: View {
                 alwaysHiddenToggle
                 previewToggle
                 hiddenSectionHotkeyRow
-                updatesToggle
+                if Constants.supportsSparkleUpdates {
+                    updatesToggle
+                }
             }
         }
     }
@@ -136,9 +138,7 @@ struct SimpleModeSettingsPane: View {
     /// that is disabled.
     @ViewBuilder
     private var hiddenSectionHotkeyRow: some View {
-        if appState.menuBarManager.section(withName: .hidden)?.isEnabled == true,
-           let hotkey = appState.settings.hotkeys.hotkey(withAction: .toggleHiddenSection)
-        {
+        if appState.menuBarManager.section(withName: .hidden)?.isEnabled == true, let hotkey = appState.settings.hotkeys.hotkey(withAction: .toggleHiddenSection) {
             HotkeyRecorder(hotkey: hotkey) {
                 Text("Shortcut to show and hide")
             }

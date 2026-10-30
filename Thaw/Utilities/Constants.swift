@@ -44,10 +44,10 @@ nonisolated enum Constants {
 
     /// Sparkle update checks are available on all supported OS versions.
     ///
-    /// macOS 27 preview builds use the alpha channel by default; Stable and
-    /// Development remain available when those appcast items apply.
+    /// The Chinese fork ships without an updater: the upstream appcast would
+    /// replace this build with the official English one.
     static var supportsSparkleUpdates: Bool {
-        true
+        false
     }
 
     // swiftlint:enable force_unwrapping
@@ -213,7 +213,7 @@ nonisolated enum Constants {
     static let discordURL: URL = requiredInfoPlistURL(discordURLInfoPlistKey)
 
     /// The Crowdin project URL for community translations.
-    static let translateURL = URL(string: "https://crowdin.com/project/thaw")!
+    static let translateURL = URL(string: "https://github.com/maowei-cmd/Thaw-CN/blob/development/l10n/zh-Hans/README.md")!
 
     /// The Lab discussion category, where users vote on which experiments
     /// should graduate to stable features.
@@ -227,9 +227,7 @@ nonisolated enum Constants {
     /// Returns a required URL from the bundle's Info.plist.
     private static func requiredInfoPlistURL(_ key: String) -> URL {
         guard
-            let value = Bundle.main.object(forInfoDictionaryKey: key) as? String,
-            let url = URL(string: value),
-            url.scheme != nil
+            let value = Bundle.main.object(forInfoDictionaryKey: key) as? String, let url = URL(string: value), url.scheme != nil
         else {
             fatalError("Missing or invalid Info.plist URL for key: \(key)")
         }

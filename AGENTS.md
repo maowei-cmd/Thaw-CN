@@ -1,5 +1,11 @@
 # AGENTS.md
 
+> **Thaw-CN fork note.** This is the unofficial Simplified Chinese fork of Thaw.
+> Translations are maintained in `l10n/zh-Hans` with
+> `scripts/localization/xcstrings_zh.py`, not Crowdin. Sparkle updates are
+> disabled. See `README.md` and `UPSTREAM.md` before changing fork-specific
+> behavior.
+
 Notes for AI coding agents and the people using them. Read this before changing anything.
 
 Many people who help with Thaw aren't developers. They describe a bug or an idea, and an agent does the work. This file tells the agent how to work here so that what it produces can be reviewed and merged. The project's rules for everyone are in the shared [contribution guidelines](https://github.com/thaw-app/.github/blob/main/.github/CONTRIBUTING.md); this file points to them where they apply.

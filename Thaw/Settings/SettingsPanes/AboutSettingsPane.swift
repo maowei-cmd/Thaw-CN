@@ -32,7 +32,9 @@ struct AboutSettingsPane: View {
         ScrollView {
             VStack(spacing: 24) {
                 identity
-                updates
+                if Constants.supportsSparkleUpdates {
+                    updates
+                }
                 actions
                 footer
             }

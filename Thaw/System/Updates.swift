@@ -81,9 +81,7 @@ final class UpdatesManager: NSObject {
 
     /// Fall back to Beta for unusable choices, including Stable's incompatible builds.
     static nonisolated func storedUpdateChannel() -> UpdateChannel {
-        guard let raw = UserDefaults.standard.string(forKey: UpdateChannel.defaultsKey),
-              let channel = UpdateChannel(rawValue: raw),
-              UpdateChannel.selectable.contains(channel)
+        guard let raw = UserDefaults.standard.string(forKey: UpdateChannel.defaultsKey), let channel = UpdateChannel(rawValue: raw), UpdateChannel.selectable.contains(channel)
         else {
             return .beta
         }
@@ -144,6 +142,7 @@ final class UpdatesManager: NSObject {
 
     func performSetup(with appState: AppState) {
         self.appState = appState
+        guard Constants.supportsSparkleUpdates else { return }
         _ = updaterController
         // Scrub SUFeedURL defaults that could redirect checks away from Info.plist; the delegate also ignores them.
         updater.clearFeedURLFromUserDefaults()
@@ -168,10 +167,7 @@ final class UpdatesManager: NSObject {
     }
 
     func startUpdaterIfNeeded() {
-        guard Constants.supportsSparkleUpdates else {
-            return
-        }
-        guard !hasStartedUpdater else {
+        guard Constants.supportsSparkleUpdates, !hasStartedUpdater else {
             return
         }
         hasStartedUpdater = true

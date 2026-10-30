@@ -18,14 +18,8 @@
 		<key>MallocSpaceEfficient</key>
 		<string>1</string>
 	</dict>
-	<key>SUFeedURL</key>
-	<string>https://thaw-app.github.io/updates/appcast.xml</string>
-	<key>SUPublicEDKey</key>
-	<string>fQ2kWqCLfAPAxQX1rp8gVNoG9hlAV/Gmm7kMBbxFe+A=</string>
-	<key>SUShowReleaseNotes</key>
-	<false/>
 	<key>ThawChangelogURL</key>
-	<string>https://raw.githubusercontent.com/thaw-app/Thaw/development/CHANGELOG.md</string>
+	<string>https://raw.githubusercontent.com/maowei-cmd/Thaw-CN/development/CHANGELOG-CN.md</string>
 	<key>ThawDiscordURL</key>
 	<string>https://discord.gg/KDfWjWDnR4</string>
 	<key>ThawDonateURL</key>
@@ -35,7 +29,7 @@
 	<key>ThawMenuBarItemSpacingExecutableURI</key>
 	<string>file:///usr/bin/env</string>
 	<key>ThawRepositoryURL</key>
-	<string>https://github.com/thaw-app/Thaw</string>
+	<string>https://github.com/maowei-cmd/Thaw-CN</string>
 	<key>ThawSkyLightFrameworkPath</key>
 	<string>/System/Library/PrivateFrameworks/SkyLight.framework/SkyLight</string>
 </dict>
