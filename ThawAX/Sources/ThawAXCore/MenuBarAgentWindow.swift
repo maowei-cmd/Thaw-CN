@@ -25,6 +25,39 @@ public enum MenuBarAgentWindow {
         }
     }
 
+    /// One display's bar: the window MenuBarAgent draws it in, and the items in it.
+    public struct Bar: Equatable, Sendable {
+        public let frame: CGRect
+        public let entries: [Entry]
+
+        public init(frame: CGRect, entries: [Entry]) {
+            self.frame = frame
+            self.entries = entries
+        }
+    }
+
+    /// The bar whose window sits on `displayBounds`.
+    ///
+    /// A menu bar window is 30 pt tall and sits at the top edge of its display,
+    /// so a direct containment check is enough for the usual case. Stacked
+    /// displays make the window's y origin negative; the display bounds use the
+    /// same CG-global space, and the largest overlap is the fallback.
+    public static func bar(for displayBounds: CGRect, among bars: [Bar]) -> Bar? {
+        if let contained = bars.first(where: { displayBounds.contains($0.frame) }) {
+            return contained
+        }
+        let overlapping = bars
+            .map { (bar: $0, area: overlapArea($0.frame, displayBounds)) }
+            .filter { $0.area > 0 }
+            .max { $0.area < $1.area }
+        return overlapping?.bar
+    }
+
+    private static func overlapArea(_ lhs: CGRect, _ rhs: CGRect) -> CGFloat {
+        let overlap = lhs.intersection(rhs)
+        return overlap.isNull ? 0 : overlap.width * overlap.height
+    }
+
     /// The apps with an item drawn on the bar, or nil when the read cannot be trusted.
     ///
     /// While an item leaves, the window keeps an empty child for it for a moment: no owner of its
@@ -36,8 +69,7 @@ public enum MenuBarAgentWindow {
     /// The entries as given when they describe a bar at rest, or nil when the read was empty or
     /// taken mid-change. Two settled reads that are equal describe a bar that has not moved.
     public static func settled(_ entries: [Entry]) -> [Entry]? {
-        guard !entries.isEmpty,
-              entries.allSatisfy({ $0.frame.width > 0 && $0.frame.height > 0 })
+        guard !entries.isEmpty, entries.allSatisfy({ $0.frame.width > 0 && $0.frame.height > 0 })
         else { return nil }
         return entries
     }
@@ -80,6 +112,44 @@ public extension AXPrimitives {
                 ownerPID: MenuBarAgentWindow.ownerPID(of: child, agentPID: agentPID, pid: pid(of:), children: children(of:)),
                 frame: frame(of: child) ?? .zero
             )
+        }
+    }
+
+    /// Every bar MenuBarAgent draws, one per display, or nil when the agent cannot be read.
+    ///
+    /// macOS 27 keeps one window per display. Reading all of them is how Thaw
+    /// learns that a legacy status item is drawn on the active bar but missing
+    /// from another display's bar.
+    static func menuBarAgentBars(
+        messagingTimeout: Float = defaultMessagingTimeout
+    ) -> [MenuBarAgentWindow.Bar]? {
+        guard let agentPID = menuBarAgentPID() else { return nil }
+        let agent = AXUIElementCreateApplication(agentPID)
+        AXUIElementSetMessagingTimeout(agent, messagingTimeout)
+        guard let windows = copyAttribute(agent, kAXWindowsAttribute) as? [AXUIElement], !windows.isEmpty
+        else {
+            return nil
+        }
+        return windows.map { window in
+            MenuBarAgentWindow.Bar(
+                frame: frame(of: window) ?? .zero,
+                entries: children(of: window).map { child in
+                    MenuBarAgentWindow.Entry(
+                        ownerPID: MenuBarAgentWindow.ownerPID(of: child, agentPID: agentPID, pid: pid(of:), children: children(of:)),
+                        frame: frame(of: child) ?? .zero
+                    )
+                }
+            )
+        }
+    }
+
+    /// The bar for one display, or nil when the agent cannot be read.
+    static func menuBarAgentBar(
+        on displayBounds: CGRect,
+        messagingTimeout: Float = defaultMessagingTimeout
+    ) -> MenuBarAgentWindow.Bar? {
+        menuBarAgentBars(messagingTimeout: messagingTimeout).flatMap {
+            MenuBarAgentWindow.bar(for: displayBounds, among: $0)
         }
     }
 

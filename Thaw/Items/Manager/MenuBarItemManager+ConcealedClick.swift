@@ -39,7 +39,7 @@ extension MenuBarItemManager {
         let isEffectivelyConcealed = controller.isEffectivelyConcealed(item)
         // A visible item macOS is not drawing cannot be clicked where its
         // frame says it is; that seat belongs to something else.
-        let isNotShown = itemsNotShownOnBarTags.contains(item.tag)
+        let isNotShown = itemsNotShownOnBarTags.contains(item.tag) || itemsMissingOnBarTags.contains(item.tag)
         guard section != .visible || isEffectivelyConcealed || isNotShown else {
             // Electron/Chromium tray items ignore a synthetic click wherever they
             // sit and take an AX press; other apps' normal click preserves their toggle.

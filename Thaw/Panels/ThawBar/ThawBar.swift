@@ -140,9 +140,7 @@ final class ThawBarPanel: NSPanel {
         DisplayEnvironment.spaceOrDisplayChanges(merging: displayInvalidations)
             .sink { [weak self] in
                 guard
-                    let self,
-                    let ts = lastShowTimestamp,
-                    ts.duration(to: .now) >= .seconds(1)
+                    let self, let ts = lastShowTimestamp, ts.duration(to: .now) >= .seconds(1)
                 else {
                     return
                 }
@@ -329,6 +327,7 @@ final class ThawBarPanel: NSPanel {
         triggeredByHotkey: Bool = false,
         presentation: Presentation = .section,
         folderMembers: [String]? = nil,
+        supplementMembers: [String] = [],
         openedFrom iconFrame: CGRect? = nil
     ) {
         guard let appState else { return }
@@ -375,7 +374,8 @@ final class ThawBarPanel: NSPanel {
             keyboardFocus: keyboardFocus,
             screen: screen,
             section: section,
-            folderMembers: folderMemberIdentifiers
+            folderMembers: folderMemberIdentifiers,
+            supplementMembers: supplementMembers
         )
         if let hostingView = contentView as? ThawBarHostingView {
             hostingView.update(inputs)
@@ -412,8 +412,7 @@ final class ThawBarPanel: NSPanel {
         // Cancel background refresh on close to avoid retaining appState.
         cacheTask?.cancel()
         cacheTask = Task { [weak appState, weak self] in
-            guard let appState else { return }
-            guard !Task.isCancelled else { return }
+            guard let appState, !Task.isCancelled else { return }
             // Wait for control windows after screen activation; stale bounds can classify everything Visible and empty Hidden.
             try? await Task.sleep(for: .milliseconds(500))
             guard !Task.isCancelled else { return }
@@ -490,17 +489,14 @@ final class ThawBarPanel: NSPanel {
         // With the icon off there is no icon to click, only its 2-pt stand-in.
         // Without a live window the cached frame still decides.
         let iconWindow = appState?.menuBarManager.section(withName: .visible)?.controlItem.window
-        if let appState,
-           appState.settings.general.showThawIcon,
-           Self.isControlItemClick(
-               appKitLocation: NSEvent.mouseLocation,
-               liveControlItemFrame: iconWindow?.frame,
-               liveScreenMaxY: iconWindow?.screen?.frame.maxY,
-               quartzLocation: MouseHelpers.locationCoreGraphics,
-               cachedControlItemFrame: controlItemAnchorBounds(appState: appState),
-               cachedScreenMinY: iconWindow?.screen.map { CGDisplayBounds($0.displayID).minY }
-           )
-        {
+        if let appState, appState.settings.general.showThawIcon, Self.isControlItemClick(
+            appKitLocation: NSEvent.mouseLocation,
+            liveControlItemFrame: iconWindow?.frame,
+            liveScreenMaxY: iconWindow?.screen?.frame.maxY,
+            quartzLocation: MouseHelpers.locationCoreGraphics,
+            cachedControlItemFrame: controlItemAnchorBounds(appState: appState),
+            cachedScreenMinY: iconWindow?.screen.map { CGDisplayBounds($0.displayID).minY }
+        ) {
             return
         }
         if presentation == .folder, appState?.groupFolders.iconContainsPointer() == true {
@@ -510,10 +506,7 @@ final class ThawBarPanel: NSPanel {
     }
 
     func hide() {
-        if presentation == .section,
-           let name = currentSection,
-           let section = appState?.menuBarManager.section(withName: name)
-        {
+        if presentation == .section, let name = currentSection, let section = appState?.menuBarManager.section(withName: name) {
             section.hide()
         }
         close()
@@ -559,8 +552,7 @@ final class ThawBarPanel: NSPanel {
     func resizeToContent(on targetScreen: NSScreen? = nil) {
         guard let contentView, let screen = targetScreen ?? screen else { return }
         let ideal = contentView.intrinsicContentSize
-        guard ideal.width.isFinite, ideal.height.isFinite, ideal.width > 0, ideal.height > 0 else { return }
-        guard ideal != frame.size || targetScreen != nil else { return }
+        guard ideal.width.isFinite, ideal.height.isFinite, ideal.width > 0, ideal.height > 0, ideal != frame.size || targetScreen != nil else { return }
         if ideal != frame.size {
             setFrame(NSRect(origin: frame.origin, size: ideal), display: true, animate: false)
         }

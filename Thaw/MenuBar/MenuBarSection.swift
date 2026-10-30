@@ -33,10 +33,10 @@ final class MenuBarSection {
 
     private nonisolated let diagLog = DiagLog(category: "MenuBarSection")
 
-    private var useThawBar: Bool {
+    /// Whether this section uses the Thaw Bar on the display a reveal targets.
+    private func useThawBar(on screen: NSScreen?) -> Bool {
         guard let appState else { return false }
-        let screen = screenForThawBar
-        let displayID = screen?.displayID ?? CGMainDisplayID()
+        let displayID = (screen ?? screenForThawBar)?.displayID ?? CGMainDisplayID()
         return appState.menuBarManager.shouldUseThawBar(for: displayID)
     }
 
@@ -156,10 +156,7 @@ final class MenuBarSection {
         // An open Thaw Bar counts as revealed even while the assertion conceals its items.
         // A second click must close it, not rerun prewarm and flash hidden items.
         let presentedName = name == .alwaysHidden ? Name.alwaysHidden : Name.hidden
-        if let panel = menuBarManager?.thawBarPanel,
-           panel.presentation == .section,
-           panel.currentSection == presentedName
-        {
+        if let panel = menuBarManager?.thawBarPanel, panel.presentation == .section, panel.currentSection == presentedName {
             return false
         }
         return appState?.menuBarManager.sectionController.isSectionHidden(name) ?? true
@@ -248,7 +245,7 @@ final class MenuBarSection {
         controlItem.applyAppearanceNow()
     }
 
-    func show(triggeredByHotkey: Bool = false, forcingInline: Bool = false) {
+    func show(triggeredByHotkey: Bool = false, forcingInline: Bool = false, on requestedScreen: NSScreen? = nil) {
         // User reveals own the state; a racing capture prewarm must leave the section open.
         menuBarManager?.noteUserRevealOwnership()
         // Only the hover path marks its reveal after return to select the shorter hover hide.
@@ -261,22 +258,25 @@ final class MenuBarSection {
         }
 
         menuBarManager.updateLastShowTimestamp()
+        let targetScreen = requestedScreen ?? screenForThawBar
 
         // ThawBarPanel captures glyphs during a brief reveal and forwards clicks through revealClickAndConceal.
         // Use it when requested or when inline items would be unreachable behind native overflow.
-        let overflowsInline = !useThawBar && (screenForThawBar.map { overflowsInline(on: $0) } ?? false)
+        let overflowsInline = !useThawBar(on: targetScreen) && (targetScreen.map { overflowsInline(on: $0) } ?? false)
         if overflowsInline {
             diagLog.info("show(\(name.logString)): the items do not fit inline; using the Thaw Bar")
         }
-        if !forcingInline, useThawBar || overflowsInline, let screen = screenForThawBar {
+        if !forcingInline, useThawBar(on: targetScreen) || overflowsInline, let screen = targetScreen {
             for section in menuBarManager.sections {
                 section.desiredState = section.name == .visible ? .showSection : .hideSection
                 section.updateControlItemState(for: nil)
             }
+            let supplement = appState?.itemManager.itemsMissing(on: screen).map(\.uniqueIdentifier) ?? []
             menuBarManager.thawBarPanel.show(
                 section: name == .alwaysHidden ? .alwaysHidden : .hidden,
                 on: screen,
-                triggeredByHotkey: triggeredByHotkey
+                triggeredByHotkey: triggeredByHotkey,
+                supplementMembers: supplement
             )
             startRehideChecks()
             return
@@ -313,9 +313,7 @@ final class MenuBarSection {
             // Skip boundary repair: preferred-position writes invalidate Thaw's hit target.
             try? await Task.sleep(for: .milliseconds(500))
             guard
-                let appState,
-                !Task.isCancelled,
-                appState.menuBarManager.sectionController.revealedSection == revealedName
+                let appState, !Task.isCancelled, appState.menuBarManager.sectionController.revealedSection == revealedName
             else {
                 return
             }
@@ -381,8 +379,7 @@ final class MenuBarSection {
         rehideMonitor?.stop()
 
         guard
-            let appState,
-            configuration.autoRehide
+            let appState, configuration.autoRehide
         else {
             return
         }
@@ -435,9 +432,7 @@ final class MenuBarSection {
     @MainActor
     private func restartTimedRehideTimer() async {
         guard
-            appState != nil,
-            configuration.autoRehide,
-            case .timed = configuration.rehideStrategy
+            appState != nil, configuration.autoRehide, case .timed = configuration.rehideStrategy
         else {
             return
         }
@@ -456,9 +451,7 @@ final class MenuBarSection {
     ) -> Task<Void, Never> {
         Task { @MainActor [weak self, weak appState] in
             guard
-                let self,
-                let appState,
-                await self.waitForContinuousRehideEligibility(
+                let self, let appState, await self.waitForContinuousRehideEligibility(
                     appState: appState,
                     interval: interval
                 )

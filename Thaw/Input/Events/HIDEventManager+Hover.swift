@@ -46,8 +46,7 @@ extension HIDEventManager {
 
     private func isMouseNearMenuBar(screen: NSScreen, verticalPadding: CGFloat = 80) -> Bool {
         guard
-            let mouseLocation = MouseHelpers.locationAppKit,
-            let menuBarHeight = screen.getMenuBarHeight()
+            let mouseLocation = MouseHelpers.locationAppKit, let menuBarHeight = screen.getMenuBarHeight()
         else {
             return false
         }
@@ -81,10 +80,7 @@ extension HIDEventManager {
                 }
 
                 guard
-                    hoverRearmTaskToken == taskToken,
-                    isEnabled,
-                    configuration.showOnHover,
-                    appState.menuBarManager.showOnHoverAllowed
+                    hoverRearmTaskToken == taskToken, isEnabled, configuration.showOnHover, appState.menuBarManager.showOnHoverAllowed
                 else {
                     return
                 }
@@ -211,8 +207,7 @@ extension HIDEventManager {
             isMouseInsideEmptyMenuBarSpace(
                 appState: appState,
                 screen: screen
-            ),
-            !isCursorOverForeignWidgetUIElement()
+            ), !isCursorOverForeignWidgetUIElement()
         else {
             return
         }
@@ -224,8 +219,7 @@ extension HIDEventManager {
             }
             // Recheck empty space and enabled state, skipped while the reveal was pending.
             guard
-                self.isEnabled,
-                self.isMouseInsideEmptyMenuBarSpace(
+                self.isEnabled, self.isMouseInsideEmptyMenuBarSpace(
                     appState: appState,
                     screen: screen
                 )
@@ -234,16 +228,14 @@ extension HIDEventManager {
                 return
             }
             // A fresh read after the cached arm keeps hung-widget delays off the event taps.
-            guard await !(self.isCursorOverForeignWidgetUIElementFresh()),
-                  !Task.isCancelled,
-                  self.isEnabled
+            guard await !(self.isCursorOverForeignWidgetUIElementFresh()), !Task.isCancelled, self.isEnabled
             else {
                 Self.diagLog.debug("hover show: skipped, the pointer is over another app's widget")
                 return
             }
             self.cancelSmartRehide()
             Self.diagLog.debug("hover show: revealing")
-            hiddenSection.show()
+            hiddenSection.show(on: screen)
             self.isHoverReveal = true
         }
     }
@@ -256,8 +248,7 @@ extension HIDEventManager {
         screen: NSScreen
     ) {
         guard
-            !isMouseInsideMenuBarHoverBand(appState: appState, screen: screen),
-            !isMouseInsideThawBar(appState: appState)
+            !isMouseInsideMenuBarHoverBand(appState: appState, screen: screen), !isMouseInsideThawBar(appState: appState)
         else {
             if pendingHoverAction == .hide {
                 Self.diagLog.debug("hover hide: cancelled, the pointer is back on the menu bar or the Thaw Bar")
@@ -282,10 +273,7 @@ extension HIDEventManager {
         scheduleHover(.hide, after: delay) {
             // Recheck settings and the retention band; cursor tremor at the bar edge must not trigger a reveal-hide loop.
             guard
-                self.isEnabled,
-                self.configuration.autoRehide,
-                !self.isMouseInsideMenuBarHoverBand(appState: appState, screen: screen),
-                !self.isMouseInsideThawBar(appState: appState)
+                self.isEnabled, self.configuration.autoRehide, !self.isMouseInsideMenuBarHoverBand(appState: appState, screen: screen), !self.isMouseInsideThawBar(appState: appState)
             else {
                 Self.diagLog.debug("hover hide: skipped, the pointer came back or the setting changed")
                 return
@@ -297,12 +285,7 @@ extension HIDEventManager {
             }
             // The await can allow newer pointer events to rearm or cancel this hide; recheck before hiding.
             guard
-                !Task.isCancelled,
-                !self.hoverChangesAreHeld,
-                self.isEnabled,
-                self.configuration.autoRehide,
-                !self.isMouseInsideMenuBarHoverBand(appState: appState, screen: screen),
-                !self.isMouseInsideThawBar(appState: appState)
+                !Task.isCancelled, !self.hoverChangesAreHeld, self.isEnabled, self.configuration.autoRehide, !self.isMouseInsideMenuBarHoverBand(appState: appState, screen: screen), !self.isMouseInsideThawBar(appState: appState)
             else {
                 return
             }
@@ -322,10 +305,7 @@ extension HIDEventManager {
         screen: NSScreen
     ) {
         guard
-            configuration.showOnScroll,
-            isMouseInsideEmptyMenuBarSpace(appState: appState, screen: screen),
-            !isCursorOverForeignWidgetUIElement(),
-            let hiddenSection = appState.menuBarManager.section(
+            configuration.showOnScroll, isMouseInsideEmptyMenuBarSpace(appState: appState, screen: screen), !isCursorOverForeignWidgetUIElement(), let hiddenSection = appState.menuBarManager.section(
                 withName: .hidden
             )
         else {
@@ -337,7 +317,7 @@ extension HIDEventManager {
         let delta = (event.scrollingDeltaX + event.scrollingDeltaY) / 2
         if delta > threshold {
             cancelSmartRehide()
-            hiddenSection.show()
+            hiddenSection.show(on: screen)
         } else if delta < -threshold {
             hiddenSection.hide()
         }

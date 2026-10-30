@@ -113,6 +113,10 @@ final class MenuBarItemManager {
     /// refreshItemsNotShownOnBar().
     var itemsNotShownOnBarTags: Set<MenuBarItemTag> = []
 
+    /// Visible items the active bar draws but another display's bar does not.
+    /// Their frame names the active bar, so clicks use the concealed path.
+    @ObservationIgnored var itemsMissingOnBarTags: Set<MenuBarItemTag> = []
+
     /// Consecutive passes each visible item has looked unshown.
     @ObservationIgnored var notShownStreaks: [MenuBarItemTag: Int] = [:]
 
@@ -274,8 +278,7 @@ final class MenuBarItemManager {
         notificationCenterLayoutHold.settle { token in
             Task { @MainActor [weak self] in
                 do { try await settle() } catch { return }
-                guard let self, !Task.isCancelled,
-                      notificationCenterLayoutHold.release(ifCurrent: token)
+                guard let self, !Task.isCancelled, notificationCenterLayoutHold.release(ifCurrent: token)
                 else { return }
                 layoutPublication.endMutation()
                 noteRestrictionChange()
@@ -754,10 +757,7 @@ final class MenuBarItemManager {
             authoredVisibleOrderPendingPhysicalApply = true
             noteAuthoredEditCommitted()
         }
-        if section == .visible,
-           !identifiers.isEmpty,
-           let controller = appState?.menuBarManager.sectionController
-        {
+        if section == .visible, !identifiers.isEmpty, let controller = appState?.menuBarManager.sectionController {
             authoredVisibleOrderApplyTask?.cancel()
             repairs.withdraw(.arrivalOrderRestore)
             authoredVisibleOrderApplyTask = Task { @MainActor [weak self] in
@@ -831,8 +831,7 @@ final class MenuBarItemManager {
     /// Writes the recorded Visible order back after an arrival disturbed it.
     /// Position writes only and a single attempt; if the bar does not follow, the next mirror records the bar.
     func scheduleArrivalOrderRestore() {
-        guard !arrangementIsManual,
-              let controller = appState?.menuBarManager.sectionController
+        guard !arrangementIsManual, let controller = appState?.menuBarManager.sectionController
         else { return }
         let identifiers = savedSectionOrder[sectionKey(for: .visible)] ?? []
         guard identifiers.count > 1 else { return }
@@ -1048,13 +1047,10 @@ final class MenuBarItemManager {
             return nil
         }
 
-        if sectionName(for: newItemsPlacement.sectionKey) == section,
-           let anchorIdentifier = newItemsPlacement.anchorIdentifier,
-           let anchorIndex = resolvedNewItemsAnchorIndex(
-               for: anchorIdentifier,
-               in: itemIdentifiers
-           )
-        {
+        if sectionName(for: newItemsPlacement.sectionKey) == section, let anchorIdentifier = newItemsPlacement.anchorIdentifier, let anchorIndex = resolvedNewItemsAnchorIndex(
+            for: anchorIdentifier,
+            in: itemIdentifiers
+        ) {
             switch newItemsPlacement.relation {
             case .leftOfAnchor:
                 return anchorIndex
@@ -1088,11 +1084,7 @@ final class MenuBarItemManager {
         in section: MenuBarSection.Name,
         itemIdentifiers: [String]
     ) -> Int? {
-        guard let anchorIdentifier = newItemsPlacement.anchorIdentifier,
-              newItemsPlacement.relation != .sectionDefault,
-              sectionName(for: newItemsPlacement.sectionKey) == section,
-              let profileOrder = activeProfileLayout?.itemOrder[sectionKey(for: section)],
-              let anchorPos = profileOrder.firstIndex(of: anchorIdentifier)
+        guard let anchorIdentifier = newItemsPlacement.anchorIdentifier, newItemsPlacement.relation != .sectionDefault, sectionName(for: newItemsPlacement.sectionKey) == section, let profileOrder = activeProfileLayout?.itemOrder[sectionKey(for: section)], let anchorPos = profileOrder.firstIndex(of: anchorIdentifier)
         else {
             return nil
         }
@@ -1255,13 +1247,10 @@ final class MenuBarItemManager {
             return targetSection == .visible
         }
 
-        if sectionName(for: newItemsPlacement.sectionKey) == targetSection,
-           let anchorIdentifier = newItemsPlacement.anchorIdentifier,
-           let anchorItem = resolvedNewItemsAnchorItem(
-               for: anchorIdentifier,
-               in: liveSectionItems
-           )
-        {
+        if sectionName(for: newItemsPlacement.sectionKey) == targetSection, let anchorIdentifier = newItemsPlacement.anchorIdentifier, let anchorItem = resolvedNewItemsAnchorItem(
+            for: anchorIdentifier,
+            in: liveSectionItems
+        ) {
             switch newItemsPlacement.relation {
             case .leftOfAnchor:
                 return .leftOfItem(anchorItem)
@@ -1516,9 +1505,7 @@ final class MenuBarItemManager {
                 // layout and sweeps hidden items into Visible. Settling ends as
                 // soon as the bundle ID reappears with a resolved PID. Apps with
                 // no tracked item arm nothing.
-                if let launchedBundleID,
-                   MenuBarItemManager.tracksMenuBarItem(bundleID: launchedBundleID, in: self.knownItemIdentifiers)
-                {
+                if let launchedBundleID, MenuBarItemManager.tracksMenuBarItem(bundleID: launchedBundleID, in: self.knownItemIdentifiers) {
                     self.startSettlingPeriod(
                         reason: "appLaunch",
                         expectedBundleIDs: [launchedBundleID],
@@ -1594,10 +1581,7 @@ final class MenuBarItemManager {
             }
             for await (identifier, isPresented) in changes {
                 guard let self else { return }
-                guard identifier == .menuBarLayout, isPresented else {
-                    continue
-                }
-                guard let imageCache = self.appState?.imageCache else { continue }
+                guard identifier == .menuBarLayout, isPresented, let imageCache = self.appState?.imageCache else { continue }
                 await imageCache.prewarmConcealedImages(
                     sections: MenuBarSection.Name.allCases,
                     onlyMissingImages: true

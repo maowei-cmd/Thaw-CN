@@ -38,6 +38,9 @@ struct ThawBarContentView: View {
     /// Set for both small bars, which carry only the Thaw Bar Only items.
     /// A folder's members, when the panel shows one folder.
     let folderMembers: [String]?
+    /// Visible items macOS does not draw on this display's bar. They are shown
+    /// here so they stay reachable.
+    let supplementMembers: [String]
 
     init(
         appState: AppState,
@@ -49,7 +52,8 @@ struct ThawBarContentView: View {
         visibleControlItem: ControlItem?,
         screen: NSScreen,
         section: MenuBarSection.Name,
-        folderMembers: [String]?
+        folderMembers: [String]?,
+        supplementMembers: [String]
     ) {
         self.appState = appState
         self.colorManager = colorManager
@@ -61,6 +65,7 @@ struct ThawBarContentView: View {
         self.screen = screen
         self.section = section
         self.folderMembers = folderMembers
+        self.supplementMembers = supplementMembers
         self._visibleControlItemState = State(initialValue: visibleControlItem?.state ?? .hideSection)
     }
 
@@ -158,12 +163,14 @@ struct ThawBarContentView: View {
     }
 
     private func itemView(for item: MenuBarItem, image: MenuBarItemDisplayImage?, at index: Int) -> ThawBarItemView {
-        ThawBarItemView(
+        let isSupplement = supplementMembers.contains(MenuBarItemTag.canonicalPersistentIdentifier(item.uniqueIdentifier))
+        return ThawBarItemView(
             itemManager: itemManager,
             menuBarManager: menuBarManager,
             item: item,
             section: section,
             displayID: screen.displayID,
+            activationDisplayID: isSupplement ? (Bridging.getActiveMenuBarDisplayID() ?? screen.displayID) : nil,
             maxHeight: itemMaxHeight,
             tooltipDelay: appState.settings.advanced.tooltipDelay,
             displayImage: image,
@@ -175,12 +182,15 @@ struct ThawBarContentView: View {
 
     /// Resolve each image once by tag, using this bar's single section.
     private func resolvedImages(items: [MenuBarItem]) -> [MenuBarItemTag: MenuBarItemDisplayImage] {
-        OverflowFallbackIcon.resolvedImages(
+        let supplementIDs = Set(supplementMembers)
+        return OverflowFallbackIcon.resolvedImages(
             for: items,
             appState: appState,
             imageCache: imageCache,
             visibleControlItemState: visibleControlItemState,
-            section: { _ in section }
+            section: { item in
+                supplementIDs.contains(MenuBarItemTag.canonicalPersistentIdentifier(item.uniqueIdentifier)) ? .visible : section
+            }
         )
     }
 
@@ -190,7 +200,7 @@ struct ThawBarContentView: View {
     }
 
     var body: some View {
-        let items = if let folderMembers {
+        let sectionItems = if let folderMembers {
             folderMembers.compactMap { identifier in
                 itemManager.managedItems.first {
                     MenuBarItemTag.canonicalPersistentIdentifier($0.uniqueIdentifier) == identifier
@@ -199,6 +209,12 @@ struct ThawBarContentView: View {
         } else {
             UserSwitchedOffApps.excluding(itemManager.managedItems(for: section), switchedOff: menuBarManager.nativeAppHidingExperiment.userSwitchedOffBundleIDs)
         }
+        let supplementItems = supplementMembers.compactMap { identifier in
+            itemManager.managedItems.first {
+                MenuBarItemTag.canonicalPersistentIdentifier($0.uniqueIdentifier) == identifier
+            }
+        }
+        let items = ThawBarSupplement.merged(sectionItems: sectionItems, supplement: supplementItems)
         ZStack {
             ThawBarChrome(
                 colorManager: colorManager,

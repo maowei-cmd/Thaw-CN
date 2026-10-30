@@ -50,6 +50,29 @@ struct MenuBarAgentWindowTests {
         #expect(MenuBarAgentWindow.drawnOwners(in: []) == nil)
     }
 
+    @Test
+    func `picks each display's bar in a stacked arrangement`() {
+        // The measured arrangement this fork was fixed on: 1280x800 at the
+        // origin, and a 1920x1080 display above it at (-346, -1080).
+        let mainBar = MenuBarAgentWindow.Bar(
+            frame: CGRect(x: 0, y: 0, width: 1280, height: 30),
+            entries: [entry(10)]
+        )
+        let externalBar = MenuBarAgentWindow.Bar(
+            frame: CGRect(x: -346, y: -1080, width: 1920, height: 30),
+            entries: [entry(20)]
+        )
+        let bars = [mainBar, externalBar]
+        #expect(MenuBarAgentWindow.bar(
+            for: CGRect(x: 0, y: 0, width: 1280, height: 800),
+            among: bars
+        ) == mainBar)
+        #expect(MenuBarAgentWindow.bar(
+            for: CGRect(x: -346, y: -1080, width: 1920, height: 1080),
+            among: bars
+        ) == externalBar)
+    }
+
     /// A stand-in for an accessibility element: who owns it and what is under it.
     private final class Node {
         let pid: pid_t?

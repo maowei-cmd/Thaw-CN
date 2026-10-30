@@ -21,6 +21,9 @@ struct ThawBarItemView: View {
     let item: MenuBarItem
     let section: MenuBarSection.Name
     let displayID: CGDirectDisplayID
+    /// The display whose bar draws the item. Supplement items are drawn on the
+    /// active bar, not the display whose Thaw Bar shows them.
+    let activationDisplayID: CGDirectDisplayID?
     let maxHeight: CGFloat?
     let tooltipDelay: TimeInterval
     let displayImage: MenuBarItemDisplayImage?
@@ -67,6 +70,7 @@ struct ThawBarItemView: View {
         let item = self.item
         let section = self.section
         let displayID = self.displayID
+        let activationDisplayID = self.activationDisplayID
         return { [weak itemManager, weak menuBarManager] in
             guard let itemManager, let menuBarManager else {
                 return
@@ -79,7 +83,7 @@ struct ThawBarItemView: View {
                 // Wait for the panel to close (KVO on isVisible) before
                 // checking item visibility.
                 await panel.waitUntilClosed(timeout: .milliseconds(200))
-                await itemManager.clickConcealedItem(item: item, with: button, on: displayID)
+                await itemManager.clickConcealedItem(item: item, with: button, on: activationDisplayID ?? displayID)
                 let duration = clickStartTime.duration(to: .now)
                 ThawBarItemView.diagLog.debug("click(\(button == .left ? "left" : "right")): completed in \(Int(duration.milliseconds))ms (macOS 27 concealed-item path)")
             }

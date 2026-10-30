@@ -26,6 +26,7 @@ final class ThawBarHostingView: NSHostingView<ThawBarContentView> {
         let screen: NSScreen
         let section: MenuBarSection.Name
         let folderMembers: [String]?
+        let supplementMembers: [String]
     }
 
     init(_ inputs: Inputs) {
@@ -48,7 +49,8 @@ final class ThawBarHostingView: NSHostingView<ThawBarContentView> {
             visibleControlItem: inputs.appState.menuBarManager.section(withName: .visible)?.controlItem,
             screen: inputs.screen,
             section: inputs.section,
-            folderMembers: inputs.folderMembers
+            folderMembers: inputs.folderMembers,
+            supplementMembers: inputs.supplementMembers
         )
     }
 
